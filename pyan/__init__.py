@@ -22,6 +22,7 @@ def create_callgraph(
     rankdir: str = "LR",
     nested_groups: bool = True,
     draw_defines: bool = True,
+    draw_inherits: bool = True,
     draw_uses: bool = True,
     colored: bool = True,
     grouped_alt: bool = False,
@@ -44,6 +45,7 @@ def create_callgraph(
         rankdir: direction of graph, e.g. "LR" for horizontal or "TB" for vertical
         nested_groups: if to group by modules and submodules
         draw_defines: if to draw defines edges (functions that are defines)
+        draw_defines: if to draw inherits edges
         draw_uses: if to draw uses edges (functions that are used)
         colored: if to color graph
         grouped_alt: if to use alternative grouping
@@ -61,6 +63,7 @@ def create_callgraph(
         grouped = True
     graph_options = {
         "draw_defines": draw_defines,
+        "draw_inherits": draw_inherits,
         "draw_uses": draw_uses,
         "colored": colored,
         "grouped_alt": grouped_alt,

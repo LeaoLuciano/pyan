@@ -104,7 +104,7 @@ class TgfWriter(Writer):
         self.write('#')
 
     def write_edge(self, edge):
-        flavor = 'U' if edge.flavor == 'uses' else 'D'
+        flavor = 'U' if edge.flavor == 'uses' else 'D' if edge.flavor == 'defines' else 'I'
         self.write(
                 '%s %s %s' %
                 (self.id_map[edge.source], self.id_map[edge.target], flavor))
@@ -358,3 +358,43 @@ class YedWriter(Writer):
         self.write('  </graph>')
         self.dedent()
         self.write('</graphml>')
+
+
+class YAMLWriter(Writer):
+    def __init__(self, graph, output=None, logger=None):
+        Writer.__init__(
+                self, graph,
+                output=output,
+                logger=logger)
+        self.id_map = {}
+        self.i = 1
+        self.indent_str = ""
+    
+
+    def start_subgraph(self, graph):
+
+        self.write('%s%s:' % (self.indent_str, graph.label))
+        self.indent_str += "\t"
+
+
+    def finish_subgraph(self, graph):
+        self.indent_str = self.indent_str[:-1]
+
+    def start_graph(self):
+        self.write('---')
+
+    def write_node(self, node):
+        self.write('%s%s:' % (self.indent_str, node.label))
+        # self.write('%d %s' % (self.i, node.label))
+        self.id_map[node] = self.i
+        self.i += 1
+
+
+    def start_edges(self):
+        self.write('#')
+
+    def write_edge(self, edge):
+        flavor = 'U' if edge.flavor == 'uses' else 'D' if edge.flavor == 'defines' else 'I'
+        self.write(
+                '%s %s %s' %
+                (self.id_map[edge.source], self.id_map[edge.target], flavor))

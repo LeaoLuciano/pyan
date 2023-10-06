@@ -5,6 +5,7 @@
 import logging
 import ast
 import symtable
+import sys
 from typing import Union
 
 from .node import Node, Flavor
@@ -54,6 +55,7 @@ class CallGraphVisitor(ast.NodeVisitor):
 
         # data gathered from analysis
         self.defines_edges = {}
+        self.inherits_edges = {}
         self.uses_edges = {}
         self.nodes = {}   # Node name: list of Node objects (in possibly different namespaces)
         self.scopes = {}  # fully qualified name of namespace: Scope object
@@ -257,6 +259,11 @@ class CallGraphVisitor(ast.NodeVisitor):
         self.uses_edges = {
             node: {n for n in nodes if n in filtered_nodes}
             for node, nodes in self.uses_edges.items()
+            if node in filtered_nodes
+        }
+        self.inherits_edges = {
+            node: {n for n in nodes if n in filtered_nodes}
+            for node, nodes in self.inherits_edges.items()
             if node in filtered_nodes
         }
         self.defines_edges = {
@@ -570,6 +577,7 @@ class CallGraphVisitor(ast.NodeVisitor):
 
             self.logger.debug("Use from %s to ImportFrom %s" % (from_node, to_node))
             if self.add_uses_edge(from_node, to_node):
+                print("Z: ", from_node, " ", to_node, file=sys.stderr)
                 self.logger.info("New edge added for Use from %s to ImportFrom %s" % (from_node, to_node))
 
     def analyze_module_import(self, import_item, ast_node):
@@ -593,6 +601,7 @@ class CallGraphVisitor(ast.NodeVisitor):
             alias_name = import_item.asname
         else:
             alias_name = mod_node.name
+        print("B: ", from_node, " ", mod_node, file=sys.stderr)
         self.add_uses_edge(from_node, mod_node)
         self.logger.info(
             "New edge added for Use import %s in %s"
@@ -652,6 +661,7 @@ class CallGraphVisitor(ast.NodeVisitor):
                 from_node = self.get_node_of_current_namespace()
                 self.logger.debug("Use from %s to %s" % (from_node, attr_node))
                 if self.add_uses_edge(from_node, attr_node):
+                    print("A: ", from_node, " ", attr_node, file=sys.stderr)
                     self.logger.info("New edge added for Use from %s to %s" % (from_node, attr_node))
 
                 # remove resolved wildcard from current site to <Node *.attr>
@@ -682,6 +692,7 @@ class CallGraphVisitor(ast.NodeVisitor):
                 to_node = self.get_node(ns, tgt_name, node, flavor=Flavor.ATTRIBUTE)
                 self.logger.debug("Use from %s to %s (target obj %s known but target attr %s not resolved; maybe fwd ref or unanalyzed import)" % (from_node, to_node, obj_node, node.attr))
                 if self.add_uses_edge(from_node, to_node):
+                    print("D: ", from_node, " ", to_node, file=sys.stderr)
                     self.logger.info("New edge added for Use from %s to %s (target obj %s known but target attr %s not resolved; maybe fwd ref or unanalyzed import)" % (from_node, to_node, obj_node, node.attr))
 
                 # remove resolved wildcard from current site to <Node *.attr>
@@ -720,6 +731,7 @@ class CallGraphVisitor(ast.NodeVisitor):
                 from_node = self.get_node_of_current_namespace()
                 self.logger.debug("Use from %s to Name %s" % (from_node, to_node))
                 if self.add_uses_edge(from_node, to_node):
+                    print("E: ", from_node, " ", to_node, file=sys.stderr)
                     self.logger.info("New edge added for Use from %s to Name %s" % (from_node, to_node))
 
             self.last_value = to_node
@@ -871,6 +883,7 @@ class CallGraphVisitor(ast.NodeVisitor):
             to_node = result_node
             self.logger.debug("Use from %s to %s (via resolved call to built-ins)" % (from_node, to_node))
             if self.add_uses_edge(from_node, to_node):
+                print("F: ", from_node, " ", to_node, file=sys.stderr)
                 self.logger.info("New edge added for Use from %s to %s (via resolved call to built-ins)" % (from_node, to_node))
 
         else:  # generic function call
@@ -894,6 +907,7 @@ class CallGraphVisitor(ast.NodeVisitor):
                 to_node = self.get_node(class_node.get_name(), '__init__', None, flavor=Flavor.METHOD)
                 self.logger.debug("Use from %s to %s (call creates an instance)" % (from_node, to_node))
                 if self.add_uses_edge(from_node, to_node):
+                    print("G: ", from_node, " ", to_node, file=sys.stderr)
                     self.logger.info("New edge added for Use from %s to %s (call creates an instance)" % (from_node, to_node))
 
     def visit_With(self, node):
@@ -909,6 +923,7 @@ class CallGraphVisitor(ast.NodeVisitor):
                 for methodname in ('__enter__', '__exit__'):
                     to_node = self.get_node(withed_obj_node.get_name(), methodname, None, flavor=Flavor.METHOD)
                     if self.add_uses_edge(from_node, to_node):
+                        print("H: ", from_node, " ", to_node, file=sys.stderr)
                         self.logger.info("New edge added for Use from %s to %s" % (from_node, to_node))
 
         for withitem in node.items:
@@ -1497,6 +1512,16 @@ class CallGraphVisitor(ast.NodeVisitor):
     def add_uses_edge(self, from_node, to_node):
         """Add a uses edge in the graph between two nodes."""
 
+        if from_node.flavor == to_node.flavor == Flavor.CLASS:
+            if from_node not in self.inherits_edges:
+                self.inherits_edges[from_node] = set()
+            if to_node in self.inherits_edges[from_node]:
+                return False
+
+            self.inherits_edges[from_node].add(to_node)
+            return True
+
+
         if from_node not in self.uses_edges:
             self.uses_edges[from_node] = set()
         if to_node in self.uses_edges[from_node]:
@@ -1628,6 +1653,7 @@ class CallGraphVisitor(ast.NodeVisitor):
 
         for from_node, to_node in new_uses_edges:
             self.add_uses_edge(from_node, to_node)
+            print("I: ", from_node, " ", to_node, file=sys.stderr)
 
         for from_node, to_node in removed_uses_edges:
             self.remove_uses_edge(from_node, to_node)
@@ -1659,6 +1685,7 @@ class CallGraphVisitor(ast.NodeVisitor):
 
         for from_node, to_node in new_uses_edges:
             self.add_uses_edge(from_node, to_node)
+            print("J: ", from_node, " ", to_node, file=sys.stderr)
             self.logger.info("Expanding unknowns: new uses edge from %s to %s" % (from_node, to_node))
 
         for name in self.nodes:
@@ -1705,4 +1732,5 @@ class CallGraphVisitor(ast.NodeVisitor):
                         for n2 in self.uses_edges[n]:  # outgoing uses edges
                             self.logger.info("Collapsing inner from %s to %s, uses %s" % (n, pn, n2))
                             self.add_uses_edge(pn, n2)
+                            print("K: ", pn, " ", n2, file=sys.stderr)
                     n.defined = False

@@ -15,7 +15,7 @@ from argparse import ArgumentParser
 
 from .analyzer import CallGraphVisitor
 from .visgraph import VisualGraph
-from .writers import TgfWriter, DotWriter, YedWriter, HTMLWriter, SVGWriter
+from .writers import TgfWriter, DotWriter, YedWriter, HTMLWriter, SVGWriter, YAMLWriter
 
 def main(cli_args=None):
     usage = """%(prog)s FILENAME... [--dot|--tgf|--yed|--svg|--html]"""
@@ -60,6 +60,13 @@ def main(cli_args=None):
         action="store_true",
         default=False,
         help="output in yEd GraphML Format"
+    )
+
+    parser.add_argument(
+        "--yaml",
+        action="store_true",
+        default=False,
+        help="output in YAML Format"
     )
 
     parser.add_argument(
@@ -114,6 +121,13 @@ def main(cli_args=None):
         action="store_true",
         dest="draw_defines",
         help="add edges for 'defines' relationships [default]"
+    )
+
+    parser.add_argument(
+        "-i",
+        action="store_true",
+        dest="draw_inherits",
+        help="add edges for 'inherits' relationships [default]"
     )
 
     parser.add_argument(
@@ -206,6 +220,7 @@ def main(cli_args=None):
 
     graph_options = {
         'draw_defines': known_args.draw_defines,
+        'draw_inherits': known_args.draw_inherits,
         'draw_uses': known_args.draw_uses,
         'colored': known_args.colored,
         'grouped_alt': known_args.grouped_alt,
@@ -283,6 +298,13 @@ def main(cli_args=None):
 
     if known_args.yed:
         writer = YedWriter(
+            graph,
+            output=known_args.filename,
+            logger=logger
+        )
+
+    if known_args.yaml:
+        writer = YAMLWriter(
             graph,
             output=known_args.filename,
             logger=logger
