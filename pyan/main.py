@@ -124,7 +124,7 @@ def main(cli_args=None):
     )
 
     parser.add_argument(
-        "-i",
+        "-i", "--inherits",
         action="store_true",
         dest="draw_inherits",
         help="add edges for 'inherits' relationships [default]"
