@@ -660,7 +660,7 @@ class CallGraphVisitor(ast.NodeVisitor):
                 # add uses edge
                 from_node = self.get_node_of_current_namespace()
                 self.logger.debug("Use from %s to %s" % (from_node, attr_node))
-                if self.add_uses_edge(from_node, self.get_node(from_node.get_name(), "self." + node.attr, node)):
+                if self.add_uses_edge(from_node, attr_node):
                     print("A: ", from_node, " ", attr_node, file=sys.stderr)
                     self.logger.info("New edge added for Use from %s to %s" % (from_node, attr_node))
 
