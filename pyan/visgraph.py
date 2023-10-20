@@ -183,7 +183,7 @@ class VisualGraph(object):
             # Create the node itself and add it to nodes_dict
             idx, fill_RGBA, text_RGB = colorizer.make_colors(node)
             visual_node = VisualNode(
-                    id=node.get_label(),
+                    id= str(type(node.ast_node))[12:-2] + "->" + node.get_label(),
                     label=labeler(node),
                     flavor=repr(node.flavor),
                     fill_color=fill_RGBA,
