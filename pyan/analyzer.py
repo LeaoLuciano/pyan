@@ -106,7 +106,7 @@ class CallGraphVisitor(ast.NodeVisitor):
         with open(filename, "rt", encoding="utf-8") as f:
             content = f.read()
         self.filename = filename
-        self.module_name = get_module_name(filename, root=self.root)
+        self.module_name = get_module_name(filename)
         self.analyze_scopes(content, filename)  # add to the currently known scopes
         self.visit(ast.parse(content, filename))
         self.module_name = None
@@ -713,15 +713,8 @@ class CallGraphVisitor(ast.NodeVisitor):
                     f"{node.attr} not resolved; maybe fwd ref or unanalyzed import)"
                 )
                 if self.add_uses_edge(from_node, to_node):
-<<<<<<< HEAD
                     print("D: ", from_node, " ", to_node, file=sys.stderr)
                     self.logger.info("New edge added for Use from %s to %s (target obj %s known but target attr %s not resolved; maybe fwd ref or unanalyzed import)" % (from_node, to_node, obj_node, node.attr))
-=======
-                    self.logger.info(
-                        "New edge added for Use from {from_node} to {to_node} (target obj {obj_node} known but "
-                        f"target attr {node.attr} not resolved; maybe fwd ref or unanalyzed import)"
-                    )
->>>>>>> origin
 
                 # remove resolved wildcard from current site to <Node *.attr>
                 self.remove_wild(from_node, obj_node, node.attr)
@@ -780,7 +773,6 @@ class CallGraphVisitor(ast.NodeVisitor):
         namespace_node = self.get_node_of_current_namespace()
         for targets in node.targets:
             targets = sanitize_exprs(targets)
-<<<<<<< HEAD
             target_names = [get_ast_node_name(x) for x in targets]
             for i, name in enumerate(target_names):
                 if name.startswith("self."):
@@ -790,17 +782,6 @@ class CallGraphVisitor(ast.NodeVisitor):
                                                        self.filename, node.lineno))
         
 
-=======
-            self.logger.debug(
-                "Assign %s %s, %s:%s"
-                % (
-                    [get_ast_node_name(x) for x in targets],
-                    [get_ast_node_name(x) for x in values],
-                    self.filename,
-                    node.lineno,
-                )
-            )
->>>>>>> origin
             self.analyze_binding(targets, values)
 
     def visit_AnnAssign(self, node):  # PEP 526, Python 3.6+
@@ -940,14 +921,8 @@ class CallGraphVisitor(ast.NodeVisitor):
             to_node = result_node
             self.logger.debug("Use from %s to %s (via resolved call to built-ins)" % (from_node, to_node))
             if self.add_uses_edge(from_node, to_node):
-<<<<<<< HEAD
                 print("F: ", from_node, " ", to_node, file=sys.stderr)
                 self.logger.info("New edge added for Use from %s to %s (via resolved call to built-ins)" % (from_node, to_node))
-=======
-                self.logger.info(
-                    "New edge added for Use from %s to %s (via resolved call to built-ins)" % (from_node, to_node)
-                )
->>>>>>> origin
 
         else:  # generic function call
             # Visit the function name part last, so that inside a binding form,
@@ -970,14 +945,8 @@ class CallGraphVisitor(ast.NodeVisitor):
                 to_node = self.get_node(class_node.get_name(), "__init__", None, flavor=Flavor.METHOD)
                 self.logger.debug("Use from %s to %s (call creates an instance)" % (from_node, to_node))
                 if self.add_uses_edge(from_node, to_node):
-<<<<<<< HEAD
                     print("G: ", from_node, " ", to_node, file=sys.stderr)
                     self.logger.info("New edge added for Use from %s to %s (call creates an instance)" % (from_node, to_node))
-=======
-                    self.logger.info(
-                        "New edge added for Use from %s to %s (call creates an instance)" % (from_node, to_node)
-                    )
->>>>>>> origin
 
     def visit_With(self, node):
         self.logger.debug("With (context manager), %s:%s" % (self.filename, node.lineno))
