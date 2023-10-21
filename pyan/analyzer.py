@@ -655,10 +655,19 @@ class CallGraphVisitor(ast.NodeVisitor):
             try:
                 if self.set_attribute(node, new_value):
                     self.logger.info("setattr %s on %s to %s" % (node.attr, objname, new_value))
+                    if objname == "self":
+                        class_name = self.get_current_class().get_name()
+                        attr_node = self.get_node(class_name, node.attr, node, flavor=Flavor.ATTRIBUTE)
+                        self.logger.debug("ÇÇÇÇÇÇÇÇÇÇÇÇ %s %s %s" % (node, class_name, attr_node.__dict__))
+                        self.add_defines_edge(self.get_current_class(), attr_node)
+                        self.add_uses_edge(self.get_node_of_current_namespace(), attr_node)
+            
             except UnresolvedSuperCallError:
                 # Trying to set something belonging to an unresolved super()
                 # of something; just ignore this attempt to setattr.
                 return
+
+
 
         elif isinstance(node.ctx, ast.Load):
             try:
@@ -780,21 +789,21 @@ class CallGraphVisitor(ast.NodeVisitor):
         for targets in node.targets:
             targets = sanitize_exprs(targets)
             target_names = [get_ast_node_name(x) for x in targets]
-            for i, name in enumerate(target_names):
-                if name.startswith("self."):
-                    name = name[5:]
-                    # names = name.split(".")
+            # for i, name in enumerate(target_names):
+            #     if name.startswith("self."):
+            #         name = name[5:]
+            #         # names = name.split(".")
 
-                    # self_idx = names.index("self")
-                    # self.logger.debug("NAMES %s %d" % (names, self_idx))
+            #         # self_idx = names.index("self")
+            #         # self.logger.debug("NAMES %s %d" % (names, self_idx))
                     
-                    # names.pop(self_idx-1)
-                    # names.pop(self_idx-1)
-                    # name = ".".join(names)
-                    to_node = self.get_node(self.get_current_class().get_name(), name, targets[i], Flavor.NAME)
+            #         # names.pop(self_idx-1)
+            #         # names.pop(self_idx-1)
+            #         # name = ".".join(names)
+            #         to_node = self.get_node(self.get_current_class().get_name(), name, targets[i], Flavor.NAME)
 
-                    self.add_defines_edge(self.get_current_class(), to_node)
-                    self.add_uses_edge(namespace_node, to_node)
+            #         #self.add_defines_edge(self.get_current_class(), to_node)
+            #         self.add_uses_edge(namespace_node, to_node)
                     
             self.logger.debug("Assign %s %s, %s:%s" % (target_names,
                                                        [get_ast_node_name(x) for x in values],
