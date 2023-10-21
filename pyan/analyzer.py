@@ -674,9 +674,17 @@ class CallGraphVisitor(ast.NodeVisitor):
 
                 # add uses edge
                 from_node = self.get_node_of_current_namespace()
-                self.logger.debug("Use from %s to %s" % (from_node, attr_node))
                 #if self.add_uses_edge(from_node, self.get_node(from_node.get_name(), attr_node.get_name(), node)):
                 
+                if objname == "self" and attr_node.get_name().endswith("^^^argument^^^"):
+                    class_name = self.get_current_class().get_name()
+                    attr_node = self.get_node(class_name, node.attr, node, flavor=Flavor.ATTRIBUTE)
+                    self.logger.debug("ÇÇÇÇÇÇÇÇÇÇÇÇ %s %s %s" % (node, class_name, attr_node.__dict__))
+
+                    # attr_node.name = attr_node.name[12:-2]
+                  
+                self.logger.debug("Use from %s to %s" % (from_node, attr_node))  
+
                 if self.add_uses_edge(from_node, attr_node):   
                     self.logger.info("New edge added for Use from %s to %s" % (from_node, attr_node))
 
@@ -747,6 +755,8 @@ class CallGraphVisitor(ast.NodeVisitor):
 
                 from_node = self.get_node_of_current_namespace()
                 self.logger.debug("Use from %s to Name %s" % (from_node, to_node))
+
+
                 if self.add_uses_edge(from_node, to_node):
                     self.logger.info("New edge added for Use from %s to Name %s" % (from_node, to_node))
 
@@ -772,8 +782,19 @@ class CallGraphVisitor(ast.NodeVisitor):
             target_names = [get_ast_node_name(x) for x in targets]
             for i, name in enumerate(target_names):
                 if name.startswith("self."):
-                    self.add_defines_edge(self.get_current_class(), self.get_node(namespace_node.get_name(), name, targets[i], Flavor.NAME))
-                    self.add_uses_edge(namespace_node, self.get_node(namespace_node.get_name(), name, targets[i], Flavor.NAME))
+                    name = name[5:]
+                    # names = name.split(".")
+
+                    # self_idx = names.index("self")
+                    # self.logger.debug("NAMES %s %d" % (names, self_idx))
+                    
+                    # names.pop(self_idx-1)
+                    # names.pop(self_idx-1)
+                    # name = ".".join(names)
+                    to_node = self.get_node(self.get_current_class().get_name(), name, targets[i], Flavor.NAME)
+
+                    self.add_defines_edge(self.get_current_class(), to_node)
+                    self.add_uses_edge(namespace_node, to_node)
                     
             self.logger.debug("Assign %s %s, %s:%s" % (target_names,
                                                        [get_ast_node_name(x) for x in values],
