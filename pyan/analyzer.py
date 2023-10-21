@@ -729,7 +729,11 @@ class CallGraphVisitor(ast.NodeVisitor):
                     f"Use from {from_node} to {to_node} (target obj {obj_node} known but target attr "
                     f"{node.attr} not resolved; maybe fwd ref or unanalyzed import)"
                 )
-                if (self.add_defines_edge(self.get_current_class(), to_node) and self.add_uses_edge(from_node, to_node)):
+                
+                definition_origin = self.get_current_class() 
+                if definition_origin == None:
+                    definition_origin = from_node
+                if (self.add_defines_edge(definition_origin, to_node) and self.add_uses_edge(from_node, to_node)):
                     self.logger.info("New edge added for Use from %s to %s (target obj %s known but target attr %s not resolved; maybe fwd ref or unanalyzed import)" % (from_node, to_node, obj_node, node.attr))
 
                 # remove resolved wildcard from current site to <Node *.attr>
