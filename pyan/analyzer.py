@@ -1298,9 +1298,9 @@ class CallGraphVisitor(ast.NodeVisitor):
 
 
         
-        self.logger.debug("AQUI: %s %s" % (obj_node.name, obj_node.get_name()))
+        # self.logger.debug("AQUI: %s %s" % (obj_node.name, obj_node.get_name()))
 
-        if obj_node.get_name().endswith("^^^argument^^^"):
+        if obj_node and obj_node.get_name().endswith("^^^argument^^^"):
             self.logger.debug("ççççççççççççççç")
 
 
