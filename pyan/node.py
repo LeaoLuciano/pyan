@@ -27,6 +27,7 @@ class Flavor(Enum):
 
     MODULE = "module"
     CLASS = "class"
+    ABSTRACTCLASS = "abstractclass"
     FUNCTION = "function"
     METHOD = "method"  # instance method
     STATICMETHOD = "staticmethod"

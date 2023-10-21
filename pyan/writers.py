@@ -96,8 +96,8 @@ class TgfWriter(Writer):
         self.id_map = {}
 
     def write_node(self, node):
-        # print("AQUI: ", node.__dict__);
-        self.write('%d %s' % (self.i, node.id))
+        # print("AQUI: ", node.__dict__, " \n ---------- \n", self.__dict__);
+        self.write('%d %s %s' % (self.i, node.id, node.flavor))
         self.id_map[node] = self.i
         self.i += 1
 

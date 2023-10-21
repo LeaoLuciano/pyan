@@ -72,6 +72,8 @@ class CallGraphVisitor(ast.NodeVisitor):
         self.nodes = {}  # Node name: list of Node objects (in possibly different namespaces)
         self.scopes = {}  # fully qualified name of namespace: Scope object
 
+        self.abstract_classes = {}
+
         self.class_base_ast_nodes = {}  # pass 1: class Node: list of AST nodes
         self.class_base_nodes = {}  # pass 2: class Node: list of Node objects (local bases, no recursion)
         self.mro = {}  # pass 2: class Node: list of Node objects in Python's MRO order
@@ -1054,6 +1056,12 @@ class CallGraphVisitor(ast.NodeVisitor):
                 flavor = Flavor.CLASSMETHOD
             else:  # instance method
                 flavor = Flavor.METHOD
+            
+            if "abstractmethod" in deco_names:
+                # print("Aqui: ", self.context_stack[-1])
+                self.abstract_classes[".".join(self.context_stack[-1])] = True
+                self.get_current_class().flavor = Flavor.ABSTRACTCLASS
+                pass
 
         # Get the name representing "self", if applicable.
         #
