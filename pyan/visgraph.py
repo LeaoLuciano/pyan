@@ -3,6 +3,7 @@
 """Format-agnostic representation of the output graph."""
 
 import re
+import ast
 import logging
 import colorsys
 
@@ -182,8 +183,12 @@ class VisualGraph(object):
 
             # Create the node itself and add it to nodes_dict
             idx, fill_RGBA, text_RGB = colorizer.make_colors(node)
+            
+            label = node.filename + "=>" + node.get_label() if isinstance(node.ast_node, ast.Module) else node.get_label()
+            id = str(type(node.ast_node))[12:-2] + "->" + label
+
             visual_node = VisualNode(
-                    id= str(type(node.ast_node))[12:-2] + "->" + node.get_label(),
+                    id=id,
                     label=labeler(node),
                     flavor=repr(node.flavor),
                     fill_color=fill_RGBA,
