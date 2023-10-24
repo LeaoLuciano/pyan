@@ -426,6 +426,13 @@ class CallGraphVisitor(ast.NodeVisitor):
         from_node = self.get_node_of_current_namespace()
         ns = from_node.get_name()
         to_node = self.get_node(ns, node.name, node, flavor=flavor)
+        if not to_node.name.startswith("_") or (to_node.name.startswith("__") and to_node.name.endswith("__")):
+            to_node.protection = "public"
+        elif to_node.name.startswith("__"):
+            to_node.protection = "private"
+        elif to_node.name.startswith("_"):
+            to_node.protection = "protected"
+
         if self.add_defines_edge(from_node, to_node):
             self.logger.info("Def from %s to Function %s" % (from_node, to_node))
 
@@ -660,7 +667,15 @@ class CallGraphVisitor(ast.NodeVisitor):
                     if objname == "self":
                         class_name = self.get_current_class().get_name()
                         attr_node = self.get_node(class_name, node.attr, node, flavor=Flavor.ATTRIBUTE)
-                        self.logger.debug("ÇÇÇÇÇÇÇÇÇÇÇÇ %s %s %s" % (node, class_name, attr_node.__dict__))
+                        self.logger.debug("Define instance variable %s %s %s" % (node, class_name, attr_node.__dict__))
+
+                        if attr_node.name.startswith("__"):
+                            attr_node.protection = "private"
+                        elif attr_node.name.startswith("_"):
+                            attr_node.protection = "protected"
+                        else:
+                            attr_node.protection = "public"
+
                         self.add_defines_edge(self.get_current_class(), attr_node)
                         self.add_uses_edge(self.get_node_of_current_namespace(), attr_node)
             
@@ -733,6 +748,14 @@ class CallGraphVisitor(ast.NodeVisitor):
                 definition_origin = self.get_current_class() 
                 if definition_origin == None:
                     definition_origin = from_node
+
+                if to_node.name.startswith("__"):
+                    to_node.protection = "private"
+                elif to_node.name.startswith("_"):
+                    to_node.protection = "protected"
+                else:
+                    to_node.protection = "public"
+
                 if (self.add_defines_edge(definition_origin, to_node) and self.add_uses_edge(from_node, to_node)):
                     self.logger.info("New edge added for Use from %s to %s (target obj %s known but target attr %s not resolved; maybe fwd ref or unanalyzed import)" % (from_node, to_node, obj_node, node.attr))
 

@@ -91,13 +91,14 @@ class Node:
     See the Flavor enum for currently supported values.
     """
 
-    def __init__(self, namespace, name, ast_node, filename, flavor):
+    def __init__(self, namespace, name, ast_node, filename, flavor, protection = None):
         self.namespace = namespace
         self.name = name
         self.ast_node = ast_node
         self.filename = filename
         self.flavor = flavor
         self.defined = namespace is None  # assume that unknown nodes are defined
+        self.protection = protection
 
     def get_short_name(self):
         """Return the short name (i.e. excluding the namespace), of this Node.
@@ -173,7 +174,7 @@ class Node:
         Unique nodes should have unique labels; and labels should not contain
         problematic characters like dots or asterisks."""
 
-        return make_safe_label(self.get_name())
+        return make_safe_label(self.get_name() + ("<>" + self.protection if self.protection else "" ))
 
     def get_namespace_label(self):
         """Return a label for the namespace of this node, suitable for use
