@@ -1,7 +1,8 @@
 # Pyan-Analizo
 
 Offline call graph generator for Python 3.
-[Pyan](https://github.com/Technologicat/pyan) fork with support for [Analizo](https://github.com/analizo/analizo/). 
+
+A [Pyan](https://github.com/Technologicat/pyan) fork with support for [Analizo](https://github.com/analizo/analizo/). 
 
 # Install
 
