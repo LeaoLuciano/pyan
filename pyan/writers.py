@@ -96,7 +96,7 @@ class TgfWriter(Writer):
         self.id_map = {}
 
     def write_node(self, node):
-        self.write('%d %s' % (self.i, node.label))
+        self.write('%d %s' % (self.i, node.id))
         self.id_map[node] = self.i
         self.i += 1
 
@@ -104,7 +104,7 @@ class TgfWriter(Writer):
         self.write('#')
 
     def write_edge(self, edge):
-        flavor = 'U' if edge.flavor == 'uses' else 'D'
+        flavor = 'U' if edge.flavor == 'uses' else 'D' if edge.flavor == 'defines' else 'I'
         self.write(
                 '%s %s %s' %
                 (self.id_map[edge.source], self.id_map[edge.target], flavor))

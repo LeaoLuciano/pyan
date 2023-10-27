@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""setuptools-based setup.py for pyan3.
+"""setuptools-based setup.py for pyan-analizo.
 
 Tested on Python 3.6.
 
@@ -73,7 +73,7 @@ if not version:
 #########################################################
 
 setup(
-    name="pyan3",
+    name="pyan-analizo",
     version=version,
     author="Juha Jeronen",
     author_email="juha.m.jeronen@gmail.com",
@@ -134,7 +134,7 @@ setup(
 
     entry_points={
         'console_scripts': [
-            'pyan3 = pyan.main:main',
+            'pyan-analizo = pyan.main:main',
         ]
     },
 )
