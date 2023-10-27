@@ -97,7 +97,8 @@ class Node:
         self.ast_node = ast_node
         self.filename = filename
         self.flavor = flavor
-        self.defined = namespace is None  # assume that unknown nodes are defined
+        self.defined = namespace is None # assume that unknown nodes are defined
+        self.conditional_paths = 0  
 
     def get_short_name(self):
         """Return the short name (i.e. excluding the namespace), of this Node.
@@ -189,6 +190,7 @@ class Node:
         if self.flavor in [Flavor.METHOD, Flavor.STATICMETHOD, Flavor.CLASSMETHOD, Flavor.ATTRIBUTE]:
             details += self.get_protection()
 
+        details += (" " + str(int(self.conditional_paths / 2)))
         return "%s %s %s %s" % (label, node_type, repr(self.flavor), details)
 
     def get_namespace_label(self):

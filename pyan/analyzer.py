@@ -866,6 +866,7 @@ class CallGraphVisitor(ast.NodeVisitor):
     #  consequences in the expand_unknowns() step, if the same name is
     #  in use elsewhere.)
     #
+    # Visiting nodes which create conditional paths
     def visit_For(self, node):
         self.logger.debug("For-loop, %s:%s" % (self.filename, node.lineno))
 
@@ -873,6 +874,10 @@ class CallGraphVisitor(ast.NodeVisitor):
         values = sanitize_exprs(node.iter)
         self.analyze_binding(targets, values)
 
+        self.get_node
+
+        self.get_namespace().conditional_paths += (1 + len(node.orelse))
+        
         for stmt in node.body:
             self.visit(stmt)
         for stmt in node.orelse:
@@ -881,6 +886,29 @@ class CallGraphVisitor(ast.NodeVisitor):
     def visit_AsyncFor(self, node):
         self.visit_For(node)  # TODO: alias for now; tag async for in output in a future version?
 
+    def visit_Try(self, node):
+        self.get_node_of_current_namespace().conditional_paths += (1 + len(node.orelse) + len(node.finalbody))
+        super().visit_Try(node)
+
+    def visit_While(self, node):
+        self.get_node()
+        super().visit_While(node)
+
+    def visit_If(self, node):
+        print(self.get_node_of_current_namespace())
+        self.get_node_of_current_namespace().conditional_paths += max(1, len(node.orelse))
+        for stmt in node.body:
+            self.visit(stmt)
+
+    def visit_IfExp(self, node):
+        self.get_node_of_current_namespace().conditional_paths += 2
+        super().visit_IfExp(node)
+
+    def visit_Match(self, node):
+        self.get_node_of_current_namespace().conditional_paths += (1 + len(node.cases))
+        super().visit_Match(node)
+
+    #
     def visit_ListComp(self, node):
         self.logger.debug("ListComp, %s:%s" % (self.filename, node.lineno))
         self.analyze_comprehension(node, "listcomp")
