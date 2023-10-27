@@ -3,6 +3,7 @@
 """Format-agnostic representation of the output graph."""
 
 import re
+import ast
 import logging
 import colorsys
 
@@ -134,6 +135,7 @@ class VisualGraph(object):
         grouped = nested or options.get('grouped', False)  # nested -> grouped
         annotated = options.get('annotated', False)
         draw_defines = options.get('draw_defines', False)
+        draw_inherits = options.get('draw_inherits', False)
         draw_uses = options.get('draw_uses', False)
 
         # Terminology:
@@ -181,8 +183,13 @@ class VisualGraph(object):
 
             # Create the node itself and add it to nodes_dict
             idx, fill_RGBA, text_RGB = colorizer.make_colors(node)
+            
+            label = node.get_definition() #node.filename + "=>" + node.get_label() if isinstance(node.ast_node, ast.Module) else node.get_label()
+            # id = str(type(node.ast_node))[12:-2] + "->" + label
+            id = label
+
             visual_node = VisualNode(
-                    id=node.get_label(),
+                    id=id,
                     label=labeler(node),
                     flavor=repr(node.flavor),
                     fill_color=fill_RGBA,
@@ -248,6 +255,18 @@ class VisualGraph(object):
                                         'defines',
                                         color))
 
+        if draw_inherits:
+            color = "#ff0000"
+            for n in visitor.inherits_edges:
+                if n.defined:
+                    for n2 in visitor.inherits_edges[n]:
+                        if n2.defined:
+                            root_graph.edges.append(
+                                    VisualEdge(
+                                        nodes_dict[n],
+                                        nodes_dict[n2],
+                                        'inherits',
+                                        color))
         if draw_uses:
             color = "#000000"
             for n in visitor.uses_edges:

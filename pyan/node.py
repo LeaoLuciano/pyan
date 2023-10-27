@@ -4,6 +4,7 @@
 """Abstract node representing data gathered from the analysis."""
 
 from enum import Enum
+import ast
 
 
 def make_safe_label(label):
@@ -12,8 +13,10 @@ def make_safe_label(label):
     out = label
     for word in unsafe_words:
         out = out.replace(word, "%sX" % word)
-    return out.replace('.', '__').replace('*', '')
-
+    
+    if not label.startswith("Module->"): 
+        out = out.replace('.', '::').replace('*', '')
+    return out
 
 class Flavor(Enum):
     """Flavor describes the kind of object a node represents."""
@@ -27,6 +30,7 @@ class Flavor(Enum):
 
     MODULE = "module"
     CLASS = "class"
+    ABSTRACTCLASS = "abstractclass"
     FUNCTION = "function"
     METHOD = "method"  # instance method
     STATICMETHOD = "staticmethod"
@@ -171,6 +175,22 @@ class Node:
 
         return make_safe_label(self.get_name())
 
+    def get_definition(self):
+        
+        node_type = str(type(self.ast_node))[12:-2]
+        label = self.get_label()
+        details = ""
+
+        if isinstance(self.ast_node, ast.Module):
+            label = self.filename 
+            details += self.get_label()
+
+        
+        if self.flavor in [Flavor.METHOD, Flavor.STATICMETHOD, Flavor.CLASSMETHOD, Flavor.ATTRIBUTE]:
+            details += self.get_protection()
+
+        return "%s %s %s %s" % (label, node_type, repr(self.flavor), details)
+
     def get_namespace_label(self):
         """Return a label for the namespace of this node, suitable for use
         in graph formats. Unique nodes should have unique labels; and labels
@@ -180,3 +200,13 @@ class Node:
 
     def __repr__(self):
         return '<Node %s:%s>' % (repr(self.flavor), self.get_name())
+
+    def get_protection(self):
+        if not self.name.startswith("_") or (self.name.startswith("__") and self.name.endswith("__")):
+            return "public"
+        elif self.name.startswith("__"):
+            return "private"
+        elif self.name.startswith("_"):
+            return "protected"
+
+        return "public"

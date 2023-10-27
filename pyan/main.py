@@ -117,6 +117,13 @@ def main(cli_args=None):
     )
 
     parser.add_argument(
+        "-i", "--inherits",
+        action="store_true",
+        dest="draw_inherits",
+        help="add edges for 'inherits' relationships [default]"
+    )
+
+    parser.add_argument(
         "-n", "--no-defines",
         action="store_false",
         default=True,
@@ -206,6 +213,7 @@ def main(cli_args=None):
 
     graph_options = {
         'draw_defines': known_args.draw_defines,
+        'draw_inherits': known_args.draw_inherits,
         'draw_uses': known_args.draw_uses,
         'colored': known_args.colored,
         'grouped_alt': known_args.grouped_alt,
