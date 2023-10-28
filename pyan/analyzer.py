@@ -1643,7 +1643,7 @@ class CallGraphVisitor(ast.NodeVisitor):
     def add_uses_edge(self, from_node, to_node):
         """Add a uses edge in the graph between two nodes."""
 
-        if from_node.flavor == to_node.flavor == Flavor.CLASS:
+        if from_node.flavor  in [Flavor.CLASS, Flavor.ABSTRACTCLASS] and to_node.flavor in [Flavor.CLASS, Flavor.ABSTRACTCLASS]:
             if from_node not in self.inherits_edges:
                 self.inherits_edges[from_node] = set()
             if to_node in self.inherits_edges[from_node]:

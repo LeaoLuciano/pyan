@@ -182,13 +182,13 @@ class Node:
         label = self.get_label()
         details = ""
 
-        if isinstance(self.ast_node, ast.Module):
-            label = self.filename 
-            details += self.get_label()
+        if isinstance(self.ast_node, ast.Module) or isinstance(self.ast_node, ast.ClassDef):
+            details = self.filename 
 
         
-        if self.flavor in [Flavor.METHOD, Flavor.STATICMETHOD, Flavor.CLASSMETHOD, Flavor.ATTRIBUTE]:
+        if self.flavor in [Flavor.METHOD, Flavor.FUNCTION, Flavor.STATICMETHOD, Flavor.CLASSMETHOD, Flavor.ATTRIBUTE]:
             details += self.get_protection()
+
 
         details += (" " + str(int(self.conditional_paths / 2)))
         return "%s %s %s %s" % (label, node_type, repr(self.flavor), details)
