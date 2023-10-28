@@ -876,7 +876,7 @@ class CallGraphVisitor(ast.NodeVisitor):
 
         self.get_node
 
-        self.get_namespace().conditional_paths += (1 + len(node.orelse))
+        self.get_namespace().conditional_paths += 1
         
         for stmt in node.body:
             self.visit(stmt)
@@ -887,28 +887,40 @@ class CallGraphVisitor(ast.NodeVisitor):
         self.visit_For(node)  # TODO: alias for now; tag async for in output in a future version?
 
     def visit_Try(self, node):
-        self.get_node_of_current_namespace().conditional_paths += (1 + len(node.orelse) + len(node.finalbody))
-        super().visit_Try(node)
+        self.get_node_of_current_namespace().conditional_paths += 1+len(node.handlers)
+        for stmt in node.body:
+            self.visit(stmt)
+        for stmt in node.orelse:
+            self.visit(stmt)
+        for stmt in node.handlers:
+            self.visit(stmt)
 
     def visit_While(self, node):
-        self.get_node()
-        super().visit_While(node)
+        self.get_node_of_current_namespace().conditional_paths += 1
+        for stmt in node.body:
+            self.visit(stmt)
+        for stmt in node.orelse:
+            self.visit(stmt)
 
     def visit_If(self, node):
-        print(self.get_node_of_current_namespace())
-        self.get_node_of_current_namespace().conditional_paths += max(1, len(node.orelse))
+        self.get_node_of_current_namespace().conditional_paths += 1
         for stmt in node.body:
+            self.visit(stmt)
+        for stmt in node.orelse:
             self.visit(stmt)
 
     def visit_IfExp(self, node):
-        self.get_node_of_current_namespace().conditional_paths += 2
-        super().visit_IfExp(node)
+        self.get_node_of_current_namespace().conditional_paths += 1
+
+        for stmt in [node.body]:
+            self.visit(stmt)
+        for stmt in [node.orelse]:
+            self.visit(stmt)
 
     def visit_Match(self, node):
-        self.get_node_of_current_namespace().conditional_paths += (1 + len(node.cases))
-        super().visit_Match(node)
-
-    #
+        cases = [x.pattern for x in node.cases if not isinstance(x.pattern, ast.MatchAs) or x.pattern.pattern]
+        self.get_node_of_current_namespace().conditional_paths += len(cases)
+    
     def visit_ListComp(self, node):
         self.logger.debug("ListComp, %s:%s" % (self.filename, node.lineno))
         self.analyze_comprehension(node, "listcomp")
